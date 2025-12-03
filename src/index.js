@@ -55,36 +55,36 @@ async function handleReaction(reaction, user, adding) {
     console.error('Error handling reaction:', err);
   }
 }
-// client.on("messageCreate", async (message) => {
-//     if (message.author.bot) return;
+client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
 
-//     const content = message.content;
-//     // Funny responses list
-//     const responses = [
-//         "Hold on, let me grab a time machine so I can send that mindset back to 1800.",
-//         "Bro really opened a history book and picked the worst page.",
-//         "Your racism is showing… might want to tuck that back in.",
-//         "Imagine saying that confidently *and* being wrong. Couldn’t be me.",
-//         "That take aged faster than milk in the sun."
-//     ];
-//     // Detect sequence
-//     if (/igga/i.test(content)) {
-//         try {
-//             await message.delete();
+    const content = message.content;
+    // Funny responses list
+    const responses = [
+        "Hold on, let me grab a time machine so I can send that mindset back to 1800.",
+        "Bro really opened a history book and picked the worst page.",
+        "Your racism is showing… might want to tuck that back in.",
+        "Imagine saying that confidently *and* being wrong. Couldn’t be me.",
+        "That take aged faster than milk in the sun."
+    ];
+    // Detect sequence
+    if (/igga/i.test(content)) {
+        try {
+            await message.delete();
 
-//             const reply = responses[Math.floor(Math.random() * responses.length)];
-//             const botMsg = await message.channel.send(reply);
+            const reply = responses[Math.floor(Math.random() * responses.length)];
+            const botMsg = await message.channel.send(reply);
 
-//             // Delete bot message after 3 seconds
-//             setTimeout(() => {
-//                 botMsg.delete().catch(() => {});
-//             }, 3000);
+            // Delete bot message after 3 seconds
+            setTimeout(() => {
+                botMsg.delete().catch(() => {});
+            }, 3000);
 
-//         } catch (err) {
-//             console.error("Failed to delete or send message:", err);
-//         }
-//     }
-// });
+        } catch (err) {
+            console.error("Failed to delete or send message:", err);
+        }
+    }
+});
 
 client.on('messageReactionAdd', (reaction, user) => handleReaction(reaction, user, true));
 client.on('messageReactionRemove', (reaction, user) => handleReaction(reaction, user, false));
