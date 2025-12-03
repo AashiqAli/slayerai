@@ -135,4 +135,40 @@ You can pass optional keywords to narrow the meme selection (the bot uses `https
 
 To use the external API, set `MEME_API_KEY` in your `.env` (the key is optional; the bot falls back to bundled images).
 
+**Commands**
+
+- **/neko reaction setup** — Create a new reaction-role message.
+  - Options: `channel` (channel mention), `title` (string)
+  - Example: `/neko reaction setup channel:#roles title:"Choose your roles"`
+
+- **/neko reaction add** — Add an emoji → role mapping to an existing reaction-role message.
+  - Options: `message_id` (string), `emoji` (string, unicode or `<:name:id>`), `role` (role picker)
+  - Example: `/neko reaction add message_id:123456789012345678 emoji:👍 role:@Member`
+
+- **/neko reaction delete** — Remove a specific line from the posted message (1-based line number).
+  - Options: `message_id` (string), `line` (integer)
+  - Example: `/neko reaction delete message_id:123456789012345678 line:2`
+  - Notes: Line numbers are counted from the top of the message (1 = first line). The command will also attempt to remove the associated reaction and mapping.
+
+- **/nekogiggle** — Send a random meme image. Optional `keywords` (comma-separated) narrows the search.
+  - Example: `/nekogiggle keywords:rocket`
+
+Developer / CLI scripts
+
+- `npm run deploy-commands` — Register (or update) the guild-scoped slash commands. Requires `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` in `.env`.
+- `npm run publish` — Publish configured reaction-role messages from `reactionRoles.json` (sends messages and adds reactions; will update `messageId`).
+- `npm start` — Run the bot.
+
+Environment variables (`.env`)
+
+- `DISCORD_TOKEN` — Bot token (required for runtime and deploy-commands).
+- `CLIENT_ID` — Application (bot) client ID (required for deploy-commands).
+- `GUILD_ID` — Target guild ID to register commands to (required for deploy-commands).
+- `MEME_API_KEY` — (Optional) API key for `api.apileague.com` to fetch memes.
+
+Permissions required (bot)
+
+- `Send Messages`, `Read Messages/View Channel`, `Add Reactions`, `Manage Messages`, `Manage Roles` in target channels.
+- Bot's role must be higher than any roles it assigns.
+
 # slayerai
