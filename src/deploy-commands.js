@@ -13,7 +13,7 @@ if (!token || !clientId || !guildId) {
 const commands = [
   {
     name: 'neko',
-    description: 'Neko utilities',
+    description: 'Neko admin utilities (reaction roles)',
     options: [
       {
         name: 'reaction',
@@ -51,17 +51,22 @@ const commands = [
         ]
       }
     ]
+  },
+  {
+    name: 'neko-public',
+    description: 'Send a random meme image',
+    options: [
+      {
+        name: 'giggle',
+        description: 'Send a random meme image',
+        type: 1,
+        options: [
+          { name: 'keywords', description: 'Comma-separated keywords to search for in the meme', type: 3, required: false }
+        ]
+      }
+    ]
   }
 ];
-
-// Add a simple top-level command to send a random meme
-commands.push({
-  name: 'nekogiggle',
-  description: 'Send a random meme image',
-  options: [
-    { name: 'keywords', description: 'Comma-separated keywords to search for in the meme', type: 3, required: false }
-  ]
-});
 
 const rest = new REST({ version: '10' }).setToken(token);
 

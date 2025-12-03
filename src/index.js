@@ -115,27 +115,40 @@ async function fetchRandomMeme(keywords) {
 client.on('interactionCreate', async (interaction) => {
   try {
     if (!interaction.isChatInputCommand()) return;
-    // Simple top-level meme command
-    if (interaction.commandName === 'nekogiggle') {
-      const keywords = interaction.options.getString('keywords');
-      const res = await fetchRandomMeme(keywords);
-      const url = typeof res === 'string' ? res : (res && res.url ? res.url : null);
-      const desc = (res && res.description) ? res.description : null;
-      if (!url) {
-        await interaction.reply({ content: 'Could not find a meme right now, try again later.' });
-        return;
+
+    // Handle /neko-public giggle command
+    if (interaction.commandName === 'neko-public') {
+      let sub = null;
+      try { sub = interaction.options.getSubcommand(); } catch (e) { sub = null; }
+
+      if (sub === 'giggle') {
+        const keywords = interaction.options.getString('keywords');
+        const res = await fetchRandomMeme(keywords);
+        const url = typeof res === 'string' ? res : (res && res.url ? res.url : null);
+        const desc = (res && res.description) ? res.description : null;
+        if (!url) {
+          await interaction.reply({ content: 'Could not find a meme right now, try again later.' });
+          return;
+        }
+        const embed = new EmbedBuilder().setImage(url);
+        if (desc) embed.setDescription(desc);
+        await interaction.reply({ embeds: [embed] });
       }
-      // send as embed with optional description
-      const embed = new EmbedBuilder().setImage(url);
-      if (desc) embed.setDescription(desc);
-      await interaction.reply({ embeds: [embed] });
       return;
     }
-    
+
+    // Handle /neko command (reaction roles)
     if (interaction.commandName !== 'neko') return;
-    const group = interaction.options.getSubcommandGroup();
+
+    // Determine subcommand group and subcommand safely
+    let group = null;
+    let sub = null;
+    try { group = interaction.options.getSubcommandGroup(); } catch (e) { group = null; }
+    try { sub = interaction.options.getSubcommand(); } catch (e) { sub = null; }
+
+    // reaction group handling
     if (group !== 'reaction') return;
-    const sub = interaction.options.getSubcommand();
+    if (!sub) return;
 
     // permission: user must have ManageGuild or ManageRoles
     const perms = interaction.member.permissions;

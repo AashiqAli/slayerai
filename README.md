@@ -58,8 +58,11 @@ If you want a slash-command workflow to create messages instead, tell me and I c
 
 **Slash Commands**
 
+The bot has two top-level command groups:
 
-- **Register commands:** Use the provided deploy script to register the `/neko` command to your guild (guild-scoped commands update immediately):
+### Admin Commands (`/neko`)
+
+- **Register commands:** Use the provided deploy script to register all commands to your guild (guild-scoped commands update immediately):
 
 ```bash
 npm run deploy-commands
@@ -67,21 +70,20 @@ npm run deploy-commands
 
 - **Create a reaction-role message:**
 
-
 Use `/neko reaction setup` to post a new message where reactions will grant roles. Options:
 
 - `channel` — the channel to post in (mention)
 - `title` — the message title text
 
-
 Example (Discord UI):
 
+```
 /neko reaction setup channel:#roles title:"Choose your roles"
+```
 
 The bot will post a message and reply with the `messageId`.
 
 - **Add an emoji-role mapping:**
-
 
 Use `/neko reaction add` to add an emoji → role pair to an existing reaction-role message. Options:
 
@@ -89,14 +91,47 @@ Use `/neko reaction add` to add an emoji → role pair to an existing reaction-r
 - `emoji` — unicode emoji (e.g. `👍`) or custom emoji in `<:name:id>` form
 - `role` — choose a role from the dropdown
 
-
 Example (Discord UI):
 
+```
 /neko reaction add message_id:123456789012345678 emoji:👍 role:@Member
+```
 
 Behavior:
 - The bot will edit the posted message to include the new emoji→role line and attempt to react with the emoji.
 - Mappings are persisted in `reactionRoles.json` so the bot will act on reactions after restarts.
+
+- **Remove an emoji-role mapping:**
+
+Use `/neko reaction delete` to remove a specific line from a reaction-role message. Options:
+
+- `message_id` — the ID of the reaction-role message
+- `line` — the line number to remove (1-indexed from the role mappings)
+
+Example (Discord UI):
+
+```
+/neko reaction delete message_id:123456789012345678 line:1
+```
+
+### Public Commands (`/neko-public`)
+
+- **Send a random meme:**
+
+Use `/neko-public giggle` to fetch and post a random meme image from the web. Options:
+
+- `keywords` — (optional) comma-separated keywords to search for in the meme
+
+Example (Discord UI):
+
+```
+/neko-public giggle keywords:"cat,funny"
+```
+
+Behavior:
+- The bot fetches a random meme image from an external API and posts it as an embedded image.
+- If no keywords are provided, a completely random meme is fetched.
+- If the API fails, a fallback meme image is posted instead.
 
 - **Remove a mapping by line number:**
 
@@ -123,17 +158,17 @@ Permissions required:
 
 **Fun Commands**
 
-- `/nekogiggle` — sends a random meme image in the channel.
+- `/neko giggle` — sends a random meme image in the channel.
 
 Example:
 
-/nekogiggle
+/neko giggle
 
 You can pass optional keywords to narrow the meme selection (the bot uses `https://api.apileague.com/retrieve-random-meme` when configured):
 
-/nekogiggle keywords:cat,airplane
+/neko giggle keywords:cat,airplane
 
-To use the external API, set `MEME_API_KEY` in your `.env` (the key is optional; the bot falls back to bundled images).
+To use the external API, set `MEME_API_KEY` in your `.env`.
 
 **Commands**
 
