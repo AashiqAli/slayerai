@@ -8,7 +8,7 @@ const reactionRoles = JSON.parse(fs.readFileSync(reactionRolesPath, 'utf8'));
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
-client.once('ready', async () => {
+client.once('clientReady', async () => {
   console.log(`Logged in as ${client.user.tag} — publishing reaction role messages`);
   let modified = false;
   for (const cfg of reactionRoles) {

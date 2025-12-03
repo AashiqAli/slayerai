@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "publish": "node src/publish.js"
+    "publish": "node src/publish.js",
+    "deploy-commands": "node src/deploy-commands.js"
   },
   "engines": {
     "node": ">=18"
