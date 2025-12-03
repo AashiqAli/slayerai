@@ -1,0 +1,17 @@
+{
+  "name": "discord-reaction-roles-bot",
+  "version": "0.1.0",
+  "description": "Simple Discord.js reaction role bot example",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "publish": "node src/publish.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.0.0"
+  }
+}

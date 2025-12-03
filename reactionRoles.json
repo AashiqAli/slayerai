@@ -1,0 +1,12 @@
+[
+  {
+    "guildId": "YOUR_GUILD_ID",
+    "channelId": "CHANNEL_ID_TO_POST_TO",
+    "messageId": null,
+    "content": "React below to get roles:\n\n👍 — Member\n❤️ — Supporter",
+    "roles": {
+      "👍": "ROLE_ID_FOR_MEMBER",
+      "❤️": "ROLE_ID_FOR_SUPPORTER"
+    }
+  }
+]
