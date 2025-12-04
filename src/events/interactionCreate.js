@@ -10,9 +10,7 @@ const {
   handleContinueButton,
   handleEditTitleButton,
   handleStep3Button,
-  handleStep4Button,
   handleBackToStep2Button,
-  handleBackToStep3Button,
   handleDoneButton,
   handlePrevRoleButton,
   handleBackRoleButton,
@@ -63,18 +61,8 @@ const handleInteractionCreate = async (interaction, client) => {
         return;
       }
       
-      if (customId.startsWith('setup_step4:')) {
-        await handleStep4Button(interaction, client);
-        return;
-      }
-      
       if (customId.startsWith('setup_back_step2:')) {
         await handleBackToStep2Button(interaction, client);
-        return;
-      }
-      
-      if (customId.startsWith('setup_back_step3:')) {
-        await handleBackToStep3Button(interaction, client);
         return;
       }
       

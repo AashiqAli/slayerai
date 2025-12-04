@@ -127,11 +127,16 @@ const formatMessage = (title, roles, titleBorder = 'none', topBorder = 'none', b
   let formattedBody = bodyContent;
   if (topBorderLine || bottomBorderLine) {
     const parts = [];
-    if (topBorderLine) parts.push(topBorderLine);
+    if (topBorderLine) {
+      parts.push(topBorderLine);
+      parts.push(''); // Add empty line after top border
+    }
     parts.push(bodyContent);
-    if (bottomBorderLine) parts.push(bottomBorderLine);
-    // Add empty line after bottom border if it exists
-    if (bottomBorderLine) parts.push('');
+    if (bottomBorderLine) {
+      parts.push(''); // Add empty line before bottom border
+      parts.push(bottomBorderLine);
+      parts.push(''); // Add empty line after bottom border
+    }
     formattedBody = parts.join('\n');
   }
   
@@ -671,10 +676,10 @@ const handleDoneButton = async (interaction, client) => {
   );
   
   // aashiq here is final message - send as plain text, not embed
-  const sent = await channel.send({ 
+  // Explicitly send as content only, no embeds
+  const sent = await channel.send({
     content: content,
-    embeds: [],
-    flags: 0
+    allowedMentions: { parse: [] }
   });
 
   // Add reactions
@@ -916,17 +921,17 @@ const showStep3Controls = async (interaction, client, sessionId, channelId, isUp
   const previewMessage = `👁️ **Preview**\n\n${previewContent}\n\n**Step 3: Select Top and Bottom Borders**\n\nChoose borders to encase the role list.`;
 
   // Create action buttons
-  const goToStep4Button = new ButtonBuilder()
-    .setCustomId(`setup_step4:${channelId}`)
-    .setLabel('Go to Step 4')
-    .setStyle(ButtonStyle.Success)
-    .setEmoji('➡️');
-
   const backButton = new ButtonBuilder()
     .setCustomId(`setup_back_step2:${channelId}`)
     .setLabel('Back to Step 2')
     .setStyle(ButtonStyle.Secondary)
     .setEmoji('⬅️');
+
+  const createButton = new ButtonBuilder()
+    .setCustomId(`setup_done:${channelId}`)
+    .setLabel('Create Message')
+    .setStyle(ButtonStyle.Success)
+    .setEmoji('✅');
 
   const cancelButton = new ButtonBuilder()
     .setCustomId(`setup_cancel:${channelId}`)
@@ -937,7 +942,7 @@ const showStep3Controls = async (interaction, client, sessionId, channelId, isUp
   const components = [
     new ActionRowBuilder().addComponents(topBorderSelect),
     new ActionRowBuilder().addComponents(bottomBorderSelect),
-    new ActionRowBuilder().addComponents(goToStep4Button, backButton, cancelButton)
+    new ActionRowBuilder().addComponents(backButton, createButton, cancelButton)
   ];
 
   if (isUpdate) {
@@ -954,81 +959,6 @@ const showStep3Controls = async (interaction, client, sessionId, channelId, isUp
     }
   } else {
     await interaction.reply({ content: previewMessage, components, flags: 64 });
-    const reply = await interaction.fetchReply();
-    session.messageIds.push(reply.id);
-    setupSessions.set(sessionId, session);
-  }
-};
-
-// Step 4: Show final preview in embed
-const showStep4Preview = async (interaction, client, sessionId, channelId, isUpdate = false) => {
-  const session = setupSessions.get(sessionId);
-  if (!session) {
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({ content: 'Session not found or expired.', ephemeral: true });
-    }
-    return;
-  }
-
-  // Create final preview
-  const { content: previewContent } = createPreviewEmbed(
-    session.title,
-    session.roles,
-    session.titleBorder || 'none',
-    session.topBorder || 'none',
-    session.bottomBorder || 'none'
-  );
-
-  // Create embed with preview
-  const previewEmbed = new EmbedBuilder()
-    .setTitle('📋 Final Preview')
-    .setDescription(previewContent)
-    .setColor(0x5865F2)
-    .addFields(
-      { name: 'Title', value: session.title, inline: true },
-      { name: 'Title Border', value: borderNames[session.titleBorder || 'none'], inline: true },
-      { name: 'Roles', value: `${session.roles.length} role(s) added`, inline: true },
-      { name: 'Channel', value: `<#${session.channelId}>`, inline: true }
-    )
-    .setFooter({ text: 'Review the preview above. Click "Create Message" to finalize.' });
-
-  // Create action buttons
-  const createButton = new ButtonBuilder()
-    .setCustomId(`setup_done:${channelId}`)
-    .setLabel('Create Message')
-    .setStyle(ButtonStyle.Success)
-    .setEmoji('✅');
-
-  const backButton = new ButtonBuilder()
-    .setCustomId(`setup_back_step3:${channelId}`)
-    .setLabel('Back to Step 3')
-    .setStyle(ButtonStyle.Secondary)
-    .setEmoji('⬅️');
-
-  const cancelButton = new ButtonBuilder()
-    .setCustomId(`setup_cancel:${channelId}`)
-    .setLabel('Cancel')
-    .setStyle(ButtonStyle.Danger)
-    .setEmoji('❌');
-
-  const components = [
-    new ActionRowBuilder().addComponents(createButton, backButton, cancelButton)
-  ];
-
-  if (isUpdate) {
-    try {
-      await interaction.update({ embeds: [previewEmbed], components, flags: 64 });
-    } catch (err) {
-      if (interaction.deferred || interaction.replied) {
-        try {
-          await interaction.editReply({ embeds: [previewEmbed], components, flags: 64 });
-        } catch (editErr) {
-          // Ignore edit errors
-        }
-      }
-    }
-  } else {
-    await interaction.reply({ embeds: [previewEmbed], components, flags: 64 });
     const reply = await interaction.fetchReply();
     session.messageIds.push(reply.id);
     setupSessions.set(sessionId, session);
@@ -1061,24 +991,6 @@ const handleStep3Button = async (interaction, client) => {
   await showStep3Controls(interaction, client, sessionId, channelId, true);
 };
 
-const handleStep4Button = async (interaction, client) => {
-  const [action, channelId] = interaction.customId.split(':');
-  const sessionId = `${interaction.user.id}:${channelId}`;
-  const session = setupSessions.get(sessionId);
-
-  if (!session || session.userId !== interaction.user.id) {
-    await interaction.reply({ content: 'Session not found or expired.', ephemeral: true });
-    return;
-  }
-
-  // Move to step 4
-  session.step = 4;
-  setupSessions.set(sessionId, session);
-
-  // Show step 4 preview (final preview)
-  await showStep4Preview(interaction, client, sessionId, channelId, true);
-};
-
 const handleBackToStep2Button = async (interaction, client) => {
   const [action, channelId] = interaction.customId.split(':');
   const sessionId = `${interaction.user.id}:${channelId}`;
@@ -1095,24 +1007,6 @@ const handleBackToStep2Button = async (interaction, client) => {
 
   // Show step 2 controls
   await showSetupControls(interaction, client, sessionId, channelId, true);
-};
-
-const handleBackToStep3Button = async (interaction, client) => {
-  const [action, channelId] = interaction.customId.split(':');
-  const sessionId = `${interaction.user.id}:${channelId}`;
-  const session = setupSessions.get(sessionId);
-
-  if (!session || session.userId !== interaction.user.id) {
-    await interaction.reply({ content: 'Session not found or expired.', ephemeral: true });
-    return;
-  }
-
-  // Move back to step 3
-  session.step = 3;
-  setupSessions.set(sessionId, session);
-
-  // Show step 3 controls
-  await showStep3Controls(interaction, client, sessionId, channelId, true);
 };
 
 const handleTopBorderSelect = async (interaction, client) => {
@@ -1178,9 +1072,7 @@ module.exports = {
   handleContinueButton,
   handleEditTitleButton,
   handleStep3Button,
-  handleStep4Button,
   handleBackToStep2Button,
-  handleBackToStep3Button,
   handleDoneButton,
   handlePrevRoleButton,
   handleBackRoleButton,
