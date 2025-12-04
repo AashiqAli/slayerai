@@ -62,21 +62,57 @@ PM2 will:
 
 ## Step 5: Upload Your Bot Code
 
-### Option A: Using Git (Recommended)
+### Option A: Using Git with HTTPS (Easiest - No SSH setup)
 ```bash
 # Install git if not installed
 sudo dnf install git -y  # Amazon Linux
 # or
 sudo apt-get install git -y  # Ubuntu
 
-# Clone your repository
-git clone <your-repo-url>
-cd <your-repo-name>
-
-# Or if you have a private repo, set up SSH keys
+# Clone using HTTPS (works for public repos)
+git clone https://github.com/AashiqAli/slayerai.git
+cd slayerai
 ```
 
-### Option B: Using SCP
+### Option B: Using Git with SSH (For private repos)
+If you get "Permission denied (publickey)" error, set up SSH keys:
+
+```bash
+# Run the SSH setup script
+chmod +x setup-github-ssh.sh
+./setup-github-ssh.sh
+
+# Follow the instructions to add the key to GitHub
+# Then clone:
+git clone git@github.com:AashiqAli/slayerai.git
+cd slayerai
+```
+
+**Manual SSH Setup:**
+```bash
+# Generate SSH key
+ssh-keygen -t ed25519 -C "ec2-bot" -f ~/.ssh/id_ed25519
+# Press Enter to accept default location
+# Press Enter twice for no passphrase (or set one)
+
+# Display public key
+cat ~/.ssh/id_ed25519.pub
+
+# Copy the output and add it to GitHub:
+# 1. Go to https://github.com/settings/keys
+# 2. Click "New SSH key"
+# 3. Paste the key and save
+
+# Test connection
+ssh -T git@github.com
+# Should say: "Hi AashiqAli! You've successfully authenticated..."
+
+# Now clone
+git clone git@github.com:AashiqAli/slayerai.git
+cd slayerai
+```
+
+### Option C: Using SCP (Alternative)
 From your local machine:
 ```bash
 # Create a tarball
