@@ -19,6 +19,7 @@ const {
 } = require('../commands/reaction/setup-interactive');
 const { handleAdd } = require('../commands/reaction/add');
 const { handleDelete } = require('../commands/reaction/delete');
+const { handlePublicCommand } = require('../commands/public');
 
 const handleInteractionCreate = async (interaction, client) => {
   try {
@@ -106,6 +107,15 @@ const handleInteractionCreate = async (interaction, client) => {
 
     // Handle slash commands
     if (!interaction.isChatInputCommand()) return;
+
+    // Handle /neko-public command (public, no permissions required)
+    if (interaction.commandName === 'neko-public') {
+      const subcommand = interaction.options.getSubcommand(false);
+      if (subcommand === 'say-hi' || !subcommand) {
+        await handlePublicCommand(interaction);
+        return;
+      }
+    }
 
     // Handle /neko command (reaction roles)
     if (interaction.commandName !== 'neko') return;

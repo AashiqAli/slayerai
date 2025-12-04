@@ -274,6 +274,9 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
   }
 
   // Create role and emoji select menus
+  // Disable if there's an invalid role selected
+  const hasInvalidRole = session.hasInvalidRole || false;
+  
   const rolePlaceholder = session.pendingRole 
     ? `Selected: ${session.pendingRole.name}` 
     : 'Select a role...';
@@ -282,6 +285,7 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
     .setPlaceholder(rolePlaceholder)
     .setMinValues(1)
     .setMaxValues(1);
+    // Role select is always enabled so user can select a different role
 
   // Get emoji name for placeholder
   let emojiPlaceholder = 'Select an emoji...';
@@ -382,20 +386,22 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
     .setCustomId(`setup_edit_title:${channelId}`)
     .setLabel('Edit Title')
     .setStyle(ButtonStyle.Secondary)
-    .setEmoji('✏️');
+    .setEmoji('✏️')
+    .setDisabled(hasInvalidRole);
 
   const goToStep3Button = new ButtonBuilder()
     .setCustomId(`setup_step3:${channelId}`)
     .setLabel('Go to Step 3')
     .setStyle(ButtonStyle.Success)
     .setEmoji('➡️')
-    .setDisabled(session.roles.length === 0);
+    .setDisabled(session.roles.length === 0 || hasInvalidRole);
 
   const cancelButton = new ButtonBuilder()
     .setCustomId(`setup_cancel:${channelId}`)
     .setLabel('Cancel')
     .setStyle(ButtonStyle.Danger)
-    .setEmoji('❌');
+    .setEmoji('❌')
+    .setDisabled(hasInvalidRole);
 
   // Navigation buttons
   const buttons = [];
@@ -406,7 +412,8 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
     const prevButton = new ButtonBuilder()
       .setCustomId(`setup_prev_role:${channelId}`)
       .setLabel('◀ Previous')
-      .setStyle(ButtonStyle.Secondary);
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(hasInvalidRole);
     buttons.push(prevButton);
   }
   
@@ -417,7 +424,8 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
     const backButton = new ButtonBuilder()
       .setCustomId(`setup_back_role:${channelId}`)
       .setLabel('◀ Back')
-      .setStyle(ButtonStyle.Secondary);
+      .setStyle(ButtonStyle.Secondary)
+      .setDisabled(hasInvalidRole);
     buttons.push(backButton);
   }
   
@@ -430,6 +438,11 @@ const showSetupControls = async (interaction, client, sessionId, channelId, isUp
     // Clear the confirmation after showing it once
     session.lastAddedRole = null;
     setupSessions.set(sessionId, session);
+  }
+  
+  // Add error message if there's an invalid role
+  if (session.invalidRoleMessage) {
+    previewMessage = `${session.invalidRoleMessage}\n\n${previewMessage}`;
   }
 
   // Add action buttons - Edit Title, Go to Step 3, Cancel
@@ -514,7 +527,49 @@ const handleRoleSelect = async (interaction, client) => {
     return;
   }
 
-  // Store role selection
+  // Get guild to check role hierarchy
+  const guild = await client.guilds.fetch(session.guildId).catch(() => null);
+  if (guild) {
+    // Find "Beepity-boop" role
+    const beepityBoopRole = guild.roles.cache.find(role => 
+      role.name.toLowerCase().includes('beepity-boop') || 
+      role.name.toLowerCase().includes('beepity boop')
+    );
+
+    if (beepityBoopRole) {
+      // Check if selected role is above "Beepity-boop" in hierarchy
+      // Higher position = higher in hierarchy
+      if (selectedRole.position > beepityBoopRole.position) {
+        // Clear any pending role selection to prevent emoji selection
+        session.pendingRole = null;
+        session.hasInvalidRole = true; // Mark session as having invalid role
+        session.invalidRoleMessage = '❌ **Role Not Allowed**\n\nThis role cannot be used for reaction roles. Please proceed with only **non-staff, non-partner, and non-event roles**.\n\nPlease select a different role below "Beepity-boop" in the hierarchy.';
+        setupSessions.set(sessionId, session);
+        
+        // Update controls with disabled buttons and show error message
+        await showSetupControls(interaction, client, sessionId, channelId, true);
+        return;
+      }
+    }
+    
+    // Clear invalid role flag and message if role is valid
+    const wasInvalid = session.hasInvalidRole;
+    if (session.hasInvalidRole) {
+      session.hasInvalidRole = false;
+      session.invalidRoleMessage = null;
+      setupSessions.set(sessionId, session);
+    }
+    
+    // If we just cleared an invalid role, update controls immediately to remove the message
+    if (wasInvalid) {
+      session.pendingRole = { id: selectedRole.id, name: selectedRole.name };
+      setupSessions.set(sessionId, session);
+      await showSetupControls(interaction, client, sessionId, channelId, true);
+      return;
+    }
+  }
+
+  // Store role selection only if validation passes
   session.pendingRole = { id: selectedRole.id, name: selectedRole.name };
   setupSessions.set(sessionId, session);
 
@@ -602,6 +657,10 @@ const saveRolePair = async (interaction, client, session, channelId) => {
   session.pendingRole = null;
   session.pendingEmoji = null;
   session.editingRoleIndex = -1; // Always ready to add new role after saving
+  
+  // Clear invalid role message when role-emoji pair is successfully added
+  session.hasInvalidRole = false;
+  session.invalidRoleMessage = null;
   
   // Save session
   setupSessions.set(sessionId, session);

@@ -35,6 +35,13 @@ const handleMessageCreate = async (message, client) => {
   // Ignore bot messages
   if (message.author.bot) return;
   
+  // Check if this is a reply to a bot message from /neko-public
+  const { handleReplyToBot } = require('../commands/public');
+  const handled = await handleReplyToBot(message);
+  if (handled) {
+    return; // Reply was handled, don't process further
+  }
+  
   // Check if user has an active setup session waiting for emoji
   if (!setupSessions) {
     return; // setupSessions not available
