@@ -1,209 +1,164 @@
 # Discord Reaction Roles Bot
 
-Minimal example Discord.js bot that assigns/removes roles when users react to a configured message.
+A Discord.js bot that automatically assigns and removes roles when users react to configured messages.
 
-Setup
+## Setup
 
-1. Install dependencies:
-
-```bash
-cd "$(dirname "$0")" || exit
-cd ../"\"$(pwd)\"" || true
-npm install
-```
-
-Simpler:
+1. **Install dependencies:**
 
 ```bash
 npm install
 ```
 
-2. Create a `.env` file from `.env.example` and set `DISCORD_TOKEN`.
+2. **Create a `.env` file** and set the following variables:
 
-3. Edit `reactionRoles.json` to include your `guildId`, `channelId`, and mappings from emoji to role ID. Use Unicode emoji (e.g. `"👍"`) or formatted custom emoji like `<:name:123456789012345678>`.
-
-Example entry:
-
-```json
-{
-  "guildId": "YOUR_GUILD_ID",
-  "channelId": "CHANNEL_ID_TO_POST_TO",
-  "messageId": null,
-  "content": "React below to get roles:\n\n👍 — Member\n❤️ — Supporter",
-  "roles": {
-    "👍": "ROLE_ID_FOR_MEMBER",
-    "❤️": "ROLE_ID_FOR_SUPPORTER"
-  }
-}
+```env
+DISCORD_TOKEN=your_bot_token_here
+CLIENT_ID=your_client_id_here
+GUILD_ID=your_guild_id_here
 ```
 
-4. Run the publisher to post the message and add reactions (this will update `messageId`):
-
-```bash
-npm run publish
-```
-
-5. Start the bot (it will listen for add/remove reactions and assign/remove roles):
-
-```bash
-npm start
-```
-
-Permissions & notes
-- Bot needs `Manage Roles` and `Read Messages/View Channel`, `Add Reactions`, `Manage Messages` (optional) in the target channel.
-- Role assignment will fail if the bot's highest role is not above the target role.
-- For custom emoji use the exact `<:name:id>` string in `reactionRoles.json` and ensure the bot can use that emoji (same guild or Nitro permissions).
-
-If you want a slash-command workflow to create messages instead, tell me and I can add a simple admin slash command.
-
-**Slash Commands**
-
-The bot has two top-level command groups:
-
-### Admin Commands (`/neko`)
-
-- **Register commands:** Use the provided deploy script to register all commands to your guild (guild-scoped commands update immediately):
+3. **Register slash commands:**
 
 ```bash
 npm run deploy-commands
 ```
 
-- **Create a reaction-role message:**
+This registers the guild-scoped slash commands to your Discord server.
 
-Use `/neko reaction setup` to post a new message where reactions will grant roles. Options:
+4. **Start the bot:**
 
-- `channel` — the channel to post in (mention)
-- `title` — the message title text
+```bash
+npm start
+```
 
-Example (Discord UI):
+## Slash Commands
 
+All commands require **Manage Server** or **Manage Roles** permission.
+
+### `/neko reaction setup`
+
+Creates a new reaction-role message in the specified channel.
+
+**Options:**
+- `channel` — The channel to post the message in (channel mention)
+- `title` — The title/header text for the message
+
+**Example:**
 ```
 /neko reaction setup channel:#roles title:"Choose your roles"
 ```
 
-The bot will post a message and reply with the `messageId`.
+The bot will post a message and reply with the `messageId` that you'll need for adding roles.
 
-- **Add an emoji-role mapping:**
+### `/neko reaction add`
 
-Use `/neko reaction add` to add an emoji → role pair to an existing reaction-role message. Options:
+Adds an emoji → role mapping to an existing reaction-role message.
 
-- `message_id` — the ID of the reaction-role message created earlier
-- `emoji` — unicode emoji (e.g. `👍`) or custom emoji in `<:name:id>` form
-- `role` — choose a role from the dropdown
+**Options:**
+- `message_id` — The ID of the reaction-role message (from setup command)
+- `emoji` — Unicode emoji (e.g., `👍`) or custom emoji in `<:name:id>` format
+- `role` — The role to assign (role picker)
 
-Example (Discord UI):
-
+**Example:**
 ```
 /neko reaction add message_id:123456789012345678 emoji:👍 role:@Member
 ```
 
-Behavior:
-- The bot will edit the posted message to include the new emoji→role line and attempt to react with the emoji.
-- Mappings are persisted in `reactionRoles.json` so the bot will act on reactions after restarts.
+The bot will:
+- Edit the message to include the new emoji → role line
+- Add the emoji as a reaction to the message
+- Save the mapping to `reactionRoles.json`
 
-- **Remove an emoji-role mapping:**
+### `/neko reaction delete`
 
-Use `/neko reaction delete` to remove a specific line from a reaction-role message. Options:
+Removes a specific line from a reaction-role message.
 
-- `message_id` — the ID of the reaction-role message
-- `line` — the line number to remove (1-indexed from the role mappings)
+**Options:**
+- `message_id` — The ID of the reaction-role message
+- `line` — The line number to remove (1-based index)
 
-Example (Discord UI):
-
+**Example:**
 ```
-/neko reaction delete message_id:123456789012345678 line:1
-```
-
-### Public Commands (`/neko-public`)
-
-- **Send a random meme:**
-
-Use `/neko-public giggle` to fetch and post a random meme image from the web. Options:
-
-- `keywords` — (optional) comma-separated keywords to search for in the meme
-
-Example (Discord UI):
-
-```
-/neko-public giggle keywords:"cat,funny"
+/neko reaction delete message_id:123456789012345678 line:2
 ```
 
-Behavior:
-- The bot fetches a random meme image from an external API and posts it as an embedded image.
-- If no keywords are provided, a completely random meme is fetched.
-- If the API fails, a fallback meme image is posted instead.
+The bot will:
+- Remove the specified line from the message
+- Remove the emoji reaction from the message
+- Delete the mapping from `reactionRoles.json`
 
-- **Remove a mapping by line number:**
+**Note:** Line numbers are 1-based and count all lines in the message content.
 
+## Manual Configuration (Alternative)
 
-  Use `/neko reaction delete` to delete a specific mapping line from a reaction-role message. The command removes the line from the message, deletes the mapping from `reactionRoles.json`, and removes the reaction from the message.
+You can also manually edit `reactionRoles.json` to configure reaction roles:
 
-  Options:
+```json
+[
+  {
+    "guildId": "YOUR_GUILD_ID",
+    "channelId": "CHANNEL_ID_TO_POST_TO",
+    "messageId": "MESSAGE_ID_AFTER_POSTING",
+    "content": "**Choose your roles**\n\n👍 — <@&ROLE_ID_FOR_MEMBER>\n❤️ — <@&ROLE_ID_FOR_SUPPORTER>",
+    "roles": {
+      "👍": "ROLE_ID_FOR_MEMBER",
+      "❤️": "ROLE_ID_FOR_SUPPORTER"
+    }
+  }
+]
+```
 
-  - `message_id` — the ID of the reaction-role message
-  - `line` — the 1-based mapping line number (1 = first mapping listed under the title)
+Then use the publish script to post the message:
 
-  Example (Discord UI):
+```bash
+npm run publish
+```
 
-  /neko reaction delete message_id:123456789012345678 line:2
+## Permissions Required
 
-  Notes:
+### Bot Permissions
+- `Send Messages` — To post reaction-role messages
+- `Read Messages/View Channel` — To read messages and reactions
+- `Add Reactions` — To add emoji reactions
+- `Manage Messages` — To edit messages and remove reactions
+- `Manage Roles` — To assign/remove roles to users
 
-  - Line numbers count only the mapping lines (the first mapping is line 1). The command assumes there is a blank line after the title and the mapping lines follow.
-  - The bot needs `Manage Messages` to remove reactions and `Manage Roles` to manage role mappings.
+### Role Hierarchy
+- The bot's role must be **higher** than any role it will assign in the server's role hierarchy.
 
-Permissions required:
-- Bot: `Send Messages`, `Add Reactions`, `Manage Roles`, `Manage Messages`, and `Read Messages/View Channel` in the target channel.
-- Bot's role must be higher than any role it will assign.
+### User Permissions
+- Users need **Manage Server** or **Manage Roles** permission to use the `/neko` commands.
 
-**Fun Commands**
+## How It Works
 
-- `/neko giggle` — sends a random meme image in the channel.
+1. When a user reacts to a configured message, the bot checks if the emoji is mapped to a role.
+2. If a mapping exists, the bot automatically assigns or removes the role based on whether the reaction was added or removed.
+3. All mappings are persisted in `reactionRoles.json`, so the bot remembers configurations after restarts.
 
-Example:
+## Emoji Format
 
-/neko giggle
+- **Unicode emojis:** Use directly (e.g., `👍`, `❤️`, `🎮`)
+- **Custom emojis:** Use the format `<:name:id>` (e.g., `<:custom_emoji:123456789012345678>`)
+- The bot must have access to custom emojis (same guild or Nitro permissions)
 
-You can pass optional keywords to narrow the meme selection (the bot uses `https://api.apileague.com/retrieve-random-meme` when configured):
+## Scripts
 
-/neko giggle keywords:cat,airplane
+- `npm start` — Run the bot
+- `npm run deploy-commands` — Register/update slash commands (requires `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` in `.env`)
+- `npm run publish` — Post configured reaction-role messages from `reactionRoles.json` and update `messageId` fields
 
-To use the external API, set `MEME_API_KEY` in your `.env`.
+## Environment Variables
 
-**Commands**
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DISCORD_TOKEN` | Yes | Your Discord bot token |
+| `CLIENT_ID` | Yes (for deploy) | Your bot's application/client ID |
+| `GUILD_ID` | Yes (for deploy) | Target guild ID for command registration |
 
-- **/neko reaction setup** — Create a new reaction-role message.
-  - Options: `channel` (channel mention), `title` (string)
-  - Example: `/neko reaction setup channel:#roles title:"Choose your roles"`
+## Troubleshooting
 
-- **/neko reaction add** — Add an emoji → role mapping to an existing reaction-role message.
-  - Options: `message_id` (string), `emoji` (string, unicode or `<:name:id>`), `role` (role picker)
-  - Example: `/neko reaction add message_id:123456789012345678 emoji:👍 role:@Member`
-
-- **/neko reaction delete** — Remove a specific line from the posted message (1-based line number).
-  - Options: `message_id` (string), `line` (integer)
-  - Example: `/neko reaction delete message_id:123456789012345678 line:2`
-  - Notes: Line numbers are counted from the top of the message (1 = first line). The command will also attempt to remove the associated reaction and mapping.
-
-- **/nekogiggle** — Send a random meme image. Optional `keywords` (comma-separated) narrows the search.
-  - Example: `/nekogiggle keywords:rocket`
-
-Developer / CLI scripts
-
-- `npm run deploy-commands` — Register (or update) the guild-scoped slash commands. Requires `DISCORD_TOKEN`, `CLIENT_ID`, and `GUILD_ID` in `.env`.
-- `npm run publish` — Publish configured reaction-role messages from `reactionRoles.json` (sends messages and adds reactions; will update `messageId`).
-- `npm start` — Run the bot.
-
-Environment variables (`.env`)
-
-- `DISCORD_TOKEN` — Bot token (required for runtime and deploy-commands).
-- `CLIENT_ID` — Application (bot) client ID (required for deploy-commands).
-- `GUILD_ID` — Target guild ID to register commands to (required for deploy-commands).
-- `MEME_API_KEY` — (Optional) API key for `api.apileague.com` to fetch memes.
-
-Permissions required (bot)
-
-- `Send Messages`, `Read Messages/View Channel`, `Add Reactions`, `Manage Messages`, `Manage Roles` in target channels.
-- Bot's role must be higher than any roles it assigns.
-
-# slayerai
+- **Role not assigned:** Check that the bot's role is higher than the target role in the server settings.
+- **Reaction not working:** Ensure the message ID in `reactionRoles.json` matches the actual message ID.
+- **Commands not appearing:** Run `npm run deploy-commands` and wait a few minutes for Discord to update.
+- **Permission errors:** Verify the bot has all required permissions in the target channel.

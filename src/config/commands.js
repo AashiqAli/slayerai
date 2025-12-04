@@ -1,15 +1,3 @@
-require('dotenv').config();
-const { REST, Routes } = require('discord.js');
-
-const token = process.env.DISCORD_TOKEN;
-const clientId = process.env.CLIENT_ID;
-const guildId = process.env.GUILD_ID;
-
-if (!token || !clientId || !guildId) {
-  console.error('Missing DISCORD_TOKEN, CLIENT_ID or GUILD_ID in .env');
-  process.exit(1);
-}
-
 const commands = [
   {
     name: 'neko',
@@ -23,6 +11,15 @@ const commands = [
           {
             name: 'setup',
             description: 'Create a new reaction-role message',
+            type: 1, // SUB_COMMAND
+            options: [
+              { name: 'channel', description: 'Channel to post the message in', type: 7, required: true },
+              { name: 'title', description: 'Title text for the message', type: 3, required: true }
+            ]
+          },
+          {
+            name: 'setup-interactive',
+            description: 'Create a reaction-role message with interactive role selection',
             type: 1, // SUB_COMMAND
             options: [
               { name: 'channel', description: 'Channel to post the message in', type: 7, required: true },
@@ -51,32 +48,8 @@ const commands = [
         ]
       }
     ]
-  },
-  {
-    name: 'neko-public',
-    description: 'Send a random meme image',
-    options: [
-      {
-        name: 'giggle',
-        description: 'Send a random meme image',
-        type: 1,
-        options: [
-          { name: 'keywords', description: 'Comma-separated keywords to search for in the meme', type: 3, required: false }
-        ]
-      }
-    ]
   }
 ];
 
-const rest = new REST({ version: '10' }).setToken(token);
+module.exports = { commands };
 
-(async () => {
-  try {
-    console.log('Registering commands to guild', guildId);
-    await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
-    console.log('Commands registered.');
-  } catch (err) {
-    console.error('Failed to register commands:', err);
-    process.exit(1);
-  }
-})();
