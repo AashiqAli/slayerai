@@ -22,12 +22,40 @@ const commands = [
     ]
   },
   {
-    name: 'neko-public',
-    description: 'Sayhitoourinhousebot',
+    name: 'neko-counter',
+    description: 'Counter bot management',
     options: [
       {
-        name: 'say-hi',
-        description: 'Say hi to the house bot',
+        name: 'reset',
+        description: 'Reset the counter to 0',
+        type: 1 // SUB_COMMAND
+      },
+      {
+        name: 'reset-checkpoint',
+        description: 'Reset the counter to the last checkpoint',
+        type: 1 // SUB_COMMAND
+      },
+      {
+        name: 'set-channel',
+        description: 'Set the channel where the counter bot listens',
+        type: 1, // SUB_COMMAND
+        options: [
+          {
+            name: 'channel',
+            description: 'The channel for the counter bot to listen to',
+            type: 7, // CHANNEL
+            required: true
+          }
+        ]
+      },
+      {
+        name: 'leaderboard',
+        description: 'Show top 10 contributors leaderboard',
+        type: 1 // SUB_COMMAND
+      },
+      {
+        name: 'mistakes-leaderboard',
+        description: 'Show top 10 mistake makers leaderboard',
         type: 1 // SUB_COMMAND
       }
     ]

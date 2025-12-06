@@ -1,0 +1,34 @@
+{
+  "currentCount": 0,
+  "lastCheckpoint": 0,
+  "channelId": "1446612242673176768",
+  "lastUserId": null,
+  "contributors": {
+    "1406867895442608159": 1
+  },
+  "mistakes": {
+    "601144753488134203": 2,
+    "1406867895442608159": 3
+  },
+  "challenges": {
+    "pattern": {
+      "active": false,
+      "type": null,
+      "value": null
+    },
+    "emoji": {
+      "active": false,
+      "requiredEmoji": null
+    },
+    "reverse": false,
+    "mathProblem": {
+      "active": false,
+      "problem": null,
+      "answer": null
+    },
+    "checkpointChallenge": {
+      "active": false,
+      "format": null
+    }
+  }
+}

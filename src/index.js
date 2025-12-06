@@ -3,8 +3,8 @@ const { createClient } = require('./config/client');
 const { handleReady } = require('./events/ready');
 const { handleInteractionCreate } = require('./events/interactionCreate');
 const { handleMessageCreate } = require('./events/messageCreate');
-const { handleReactionAdd } = require('./events/reactionAdd');
-const { handleReactionRemove } = require('./events/reactionRemove');
+const { handleReactionAdd } = require('./reaction-roles/events/reactionAdd');
+const { handleReactionRemove } = require('./reaction-roles/events/reactionRemove');
 
 const client = createClient();
 

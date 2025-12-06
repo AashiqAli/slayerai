@@ -4,7 +4,6 @@ module.exports = {
     script: 'src/index.js',
     instances: 1,
     autorestart: true,
-    watch: false,
     max_memory_restart: '500M',
     env: {
       NODE_ENV: 'production'
@@ -18,8 +17,10 @@ module.exports = {
     min_uptime: '10s',
     max_restarts: 10,
     restart_delay: 4000,
-    // Auto restart on file changes (optional, set to false for production)
-    ignore_watch: ['node_modules', 'logs', 'data']
+    // Auto restart on file changes
+    watch: ['src'],
+    watch_delay: 1000,
+    ignore_watch: ['node_modules', 'logs', 'data', '.git']
   }]
 };
 

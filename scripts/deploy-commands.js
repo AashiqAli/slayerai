@@ -15,7 +15,7 @@ const rest = new REST({ version: '10' }).setToken(token);
 
 (async () => {
   try {
-    // Deploy all commands to guild only (neko + neko-public)
+    // Deploy all commands to guild
     if (guildId) {
       console.log('Registering all commands to guild', guildId);
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
@@ -23,20 +23,6 @@ const rest = new REST({ version: '10' }).setToken(token);
     } else {
       console.error('⚠️  GUILD_ID not set, cannot register guild commands');
       process.exit(1);
-    }
-    
-    // Remove neko-public from global commands if it exists
-    try {
-      const globalCommands = await rest.get(Routes.applicationCommands(clientId));
-      const nekoPublicGlobal = globalCommands.find(c => c.name === 'neko-public');
-      if (nekoPublicGlobal) {
-        console.log('\nRemoving neko-public from global commands...');
-        await rest.delete(Routes.applicationCommand(clientId, nekoPublicGlobal.id));
-        console.log('✅ Removed neko-public from global commands');
-      }
-    } catch (err) {
-      // Ignore if no global commands or deletion fails
-      console.log('ℹ️  No global neko-public command found or already removed');
     }
     
     console.log('\n✅ All commands deployed successfully!');

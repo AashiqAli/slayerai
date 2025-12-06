@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const REACTION_ROLES_PATH = path.join(__dirname, '../../data/reactionRoles.json');
+const REACTION_ROLES_PATH = path.join(__dirname, '../../../data/reactionRoles.json');
 
 let reactionRoles = [];
 
